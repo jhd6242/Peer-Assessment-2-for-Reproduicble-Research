@@ -1,0 +1,110 @@
+---
+title: "Course Project 2: Extreme Weather Analysis"
+output: html_document
+---
+
+
+## Synopsis
+
+## Introduction
+
+Storms and other severe weather events can cause both public health and economic problems for communities and municipalities. Many severe events can result in fatalities, injuries, and property damage, and preventing such outcomes to the extent possible is a key concern.
+
+This project involves exploring the U.S. National Oceanic and Atmospheric Administration's (NOAA) storm database. This database tracks characteristics of major storms and weather events in the United States, including when and where they occur, as well as estimates of any fatalities, injuries, and property damage.
+
+#### Data
+The data for this assignment come in the form of a comma-separated-value file compressed via the bzip2 algorithm to reduce its size. You can download the file from the course web site:
+
+#### Storm Data [47Mb]
+There is also some documentation of the database available. Here you will find how some of the variables are constructed/defined.
+
+#### National Weather Service Storm Data Documentation
+#### National Climatic Data Center Storm Events FAQ
+The events in the database start in the year 1950 and end in November 2011. In the earlier years of the database there are generally fewer events recorded, most likely due to a lack of good records. More recent years should be considered more complete.
+
+## Data Processing
+```{r}
+library(dplyr)
+library(ggplot2)
+library(plyr)
+```
+
+```{r}
+stormdata <- read.csv(bzfile("repdata_data_StormData (1).csv.bz2"))
+
+stormdatacosts <- stormdata[,c("EVTYPE", "FATALITIES", "INJURIES", "PROPDMG", "PROPDMGEXP")]
+```
+
+
+## Total Injuries
+
+```{r}
+injuries  <-  ddply(stormdatacosts, .(EVTYPE), summarize, Total.Injuries = sum(INJURIES,na.rm=TRUE))
+
+
+injuries <- injuries %>% arrange(desc(Total.Injuries))
+
+
+g <-
+    ggplot(data = injuries[1:6, ], aes(x = reorder(EVTYPE, Total.Injuries), y = Total.Injuries,fill = EVTYPE)) + geom_bar(stat = "identity") + xlab("Event Type") + ylab("Total Injuries") +
+    ggtitle("Total Injuries from Weather Related Events") + coord_flip() 
+    
+g
+
+```
+
+## Total Fatalities
+
+```{r}
+fatalities  <-  ddply(stormdatacosts, .(EVTYPE), summarize, Total.Fatalities = sum(FATALITIES,na.rm=TRUE))
+
+
+fatalities <- fatalities %>% arrange(desc(Total.Fatalities))
+
+
+f <-
+    ggplot(data = fatalities[1:6, ], aes(x = reorder(EVTYPE, Total.Fatalities), y = Total.Fatalities,fill = EVTYPE)) + geom_bar(stat = "identity") + xlab("Event Type") + ylab("Total Fatalities") +
+    ggtitle("Total Fatalities from Weather Related Events") + coord_flip() 
+    
+f
+
+```
+
+## Total Property Damage 
+
+```{r}
+unique(stormdatacosts$PROPDMGEXP)
+
+stormdatacosts2 <- stormdatacosts
+
+stormdatacosts2$PROPDMGEXP <- toupper(stormdatacosts$PROPDMGEXP)
+
+
+stormdatacosts2$PROPDMGEXP[stormdatacosts$PROPDMGEXP %in% c("","+","-","?")] = "0"
+
+
+stormdatacosts2$PROPDMGEXP[stormdatacosts2$PROPDMGEXP %in% c("B")] = "9"
+
+stormdatacosts2$PROPDMGEXP[stormdatacosts2$PROPDMGEXP %in% c("M")] = "6"
+
+stormdatacosts2$PROPDMGEXP[stormdatacosts2$PROPDMGEXP %in% c("K")] = "3"
+
+stormdatacosts2$PROPDMGEXP[stormdatacosts2$PROPDMGEXP %in% c("H")] = "2"
+
+
+stormdatacosts2$PROPDMGEXP <- 10^(as.numeric(stormdatacosts2$PROPDMGEXP))
+
+
+stormdatacosts2 <- stormdatacosts2 %>% mutate(PROPDMGTOTAL = PROPDMGEXP * PROPDMG)
+
+damages <- ddply(stormdatacosts2, .(EVTYPE), summarize, Total.Property.Damages = sum(PROPDMGTOTAL,na.rm=TRUE))
+
+damages <- damages %>% arrange(desc(Total.Property.Damages))
+
+d <-
+    ggplot(data = damages[1:6, ], aes(x = reorder(EVTYPE, Total.Property.Damages), y = Total.Property.Damages,fill = EVTYPE)) + geom_bar(stat = "identity") + xlab("Event Type") + ylab("Total Property Damage") +
+    ggtitle("Total Property Damage from Weather Related Events") + coord_flip() 
+    
+d
+
+```
