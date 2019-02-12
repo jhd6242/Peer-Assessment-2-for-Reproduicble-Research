@@ -5,6 +5,7 @@ output: html_document
 
 
 ## Synopsis
+The purpose of this analysis is to explore the most damaging extreme weather in regards to injury, fatality and property damage (USD). The data used for this analysis is from the US National Oceanic and Atmospheric Administration (NOAA) storm database.. Between 1950 and November 2011 the most damaging weather event in regards to injury was tornadoes. Approximately 90,000 people were injured in tornadoes. The total fatalities During the same time frame the most damaging weather event in regards to fatality was tornadoes. Approximately 5500 people died while the storm database was recording characteristic of different weather events.
 
 ## Introduction
 
@@ -108,3 +109,4 @@ d <-
 d
 
 ```
+
